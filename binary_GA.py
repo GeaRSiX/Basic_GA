@@ -220,7 +220,6 @@ def elitism(old_population, new_population):
 # entry point
 # ===========
 if __name__ == '__main__':
-  
   if (len(sys.argv) >= 2):
     generation_limit = int(sys.argv[1])
   if (len(sys.argv) >= 3):

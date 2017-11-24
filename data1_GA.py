@@ -13,6 +13,7 @@
 # =======
 # imports
 # =======
+import sys
 import time
 import random
 
@@ -26,13 +27,11 @@ data_R_count = 32   # number of rows within data
 data_c_size = 5     # size of variables within data
 # genetic algorithm variables
 c_size = data_c_size            # size of Rule's condition
-#R_count = 10 #getting started  # number of rules per individual
-R_count = 32
-generation_limit = 1000
-#P_size = 10  #getting started
-P_size = 400                     # size of population (of Solutions)
+R_count = 10                    # number of rules per individual
+generation_limit = 50
+P_size = 10                     # size of population (of Solutions)
 G_size = (c_size + 1) * R_count # size of Solution's genome (+ 1 for output)
-C_rate = 0.9                      # crossover rate (0.0 to 1.0)  # NOTE: "typically 0.6 to 0.9"
+C_rate = 0.9                    # crossover rate (0.0 to 1.0)  # NOTE: "typically 0.6 to 0.9"
 M_rate = 1 / P_size             # mutation rate (0.0 to 1.0)   # NOTE: 1 / P_size or 1 / G_size
 
 
@@ -51,7 +50,7 @@ class Rule:
     matching = 0
     
     for i, c in enumerate(self.condition):
-      if c == 2 or c == int(target[i]):
+      if c == int(target[i]):
         matching += 1
         
     return matching == data_c_size
