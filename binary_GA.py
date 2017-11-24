@@ -7,6 +7,7 @@
 # =======
 # imports
 # =======
+import sys
 import time
 import random
 
@@ -57,7 +58,7 @@ def eval(population):
   return fittest
 
 
-def termination_criteria(generation, population):
+def termination_criteria(generation, generation_limit, population):
   if eval(population) == G_size or generation == generation_limit:
     return True
   else:
@@ -85,13 +86,13 @@ def debug_print(generation, population, genome_size):
   print("-------------------------")
 
   
-def main():
+def main(generation_limit, P_size, G_size, C_rate, M_rate):
   # initialisation
   random.seed(time.time())
   generation = 0
   population = init(P_size, G_size)
   # main loop
-  while termination_criteria(generation, population) is False:
+  while termination_criteria(generation, generation_limit, population) is False:
     debug_print(generation, population, G_size)
     parents = tournament_selection(population, 2)
     offspring = single_crossover(parents, C_rate, G_size)
@@ -219,4 +220,16 @@ def elitism(old_population, new_population):
 # entry point
 # ===========
 if __name__ == '__main__':
-  main()
+  
+  if (len(sys.argv) >= 2):
+    generation_limit = int(sys.argv[1])
+  if (len(sys.argv) >= 3):
+    P_size = int(sys.argv[2])
+  if (len(sys.argv) >= 4):
+    G_size = int(sys.argv[3])
+  if (len(sys.argv) >= 5):
+    C_rate = float(sys.argv[4])
+  if (len(sys.argv) >= 6):
+    M_rate = float(sys.argv[5])
+  
+  main(generation_limit, P_size, G_size, C_rate, M_rate)
