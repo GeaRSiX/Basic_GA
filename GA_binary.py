@@ -10,11 +10,15 @@
 import sys
 import time
 import random
+import GA_csv
 
 
 # =======
 # globals
 # =======
+# output options
+output_data = False
+output_csv = False
 # genetic algorithm variables
 generation_limit = 50
 P_size = 50         # size of population (of Solutions)
@@ -59,47 +63,54 @@ def eval(population):
 
 
 def termination_criteria(generation, generation_limit, population):
+  # check termination criteria
   if eval(population) == G_size or generation == generation_limit:
-    return True
+    terminate = True
   else:
-    return False
+    terminate = False
+    
+  # write data
+  if output_data is True:
+    write_data(generation, population)
+    
+  return terminate
+    
 
-
-def debug_print(generation, population, genome_size):
-  unfittest = genome_size
-  fittest = 0
-  overall = 0
-  
+def write_data(generation, population):
+  # get the fitness data set
+  data_set = []
   for i in population:
-    if i.fitness < unfittest:
-      unfittest = i.fitness
-    if i.fitness > fittest:
-      fittest = i.fitness
-    overall += i.fitness
-  average = int(overall / len(population))
-
-  print("GENERATION "+str(generation))
-  print("Unfittest:\t" + str(unfittest))
-  print("Average:\t" + str(average))
-  print("Fittest:\t" + str(fittest) + "/" + str(genome_size))
-  print("Overall:\t" + str(overall) + "/" + str(len(population) * genome_size))
+    data_set.append(i.fitness)
+    
+  # calculate population fitness data
+  fittest = max(data_set)
+  unfittest = min(data_set)
+  average = int(sum(data_set) / len(population))
+  
+  # debug print population fitness data
+  print("GENERATION " + str(generation))
+  print("Fittest:\t"  + str(fittest))
+  print("Average:\t"  + str(average))
+  print("Unfittest:\t"+ str(unfittest))
   print("-------------------------")
+  
+  # write population fitness data to csv
+  if output_csv is True:
+    GA_csv.write(generation, [fittest, unfittest, average])
 
   
-def main(generation_limit, P_size, G_size, C_rate, M_rate):
+def run(generation_limit, P_size, G_size, C_rate, M_rate):
   # initialisation
   random.seed(time.time())
   generation = 0
   population = init(P_size, G_size)
   # main loop
   while termination_criteria(generation, generation_limit, population) is False:
-    debug_print(generation, population, G_size)
     parents = tournament_selection(population, 2)
     offspring = single_crossover(parents, C_rate, G_size)
     offspring = mutate(offspring, M_rate)
     population = elitism(population, offspring)
     generation += 1
-  debug_print(generation, population, G_size)
   
   
 def init(population_size, genome_size):
@@ -216,19 +227,18 @@ def elitism(old_population, new_population):
   return survivors
   
   
-# ===========
-# entry point
-# ===========
+# ============
+# entry points
+# ============
 if __name__ == '__main__':
   if (len(sys.argv) >= 2):
-    generation_limit = int(sys.argv[1])
-  if (len(sys.argv) >= 3):
-    P_size = int(sys.argv[2])
-  if (len(sys.argv) >= 4):
-    G_size = int(sys.argv[3])
-  if (len(sys.argv) >= 5):
-    C_rate = float(sys.argv[4])
-  if (len(sys.argv) >= 6):
-    M_rate = float(sys.argv[5])
+    output_csv = True
+    GA_csv.init(sys.argv[1]+'.csv')
+  run(generation_limit, P_size, G_size, C_rate, M_rate)
   
-  main(generation_limit, P_size, G_size, C_rate, M_rate)
+  
+def main(argv=''):
+  if argv != '':
+    output_csv = True
+    GA_csv.init(argv+'.csv')
+  run(generation_limit, P_size, G_size, C_rate, M_rate)
