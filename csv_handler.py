@@ -10,9 +10,6 @@
 import os
 import csv
 
-# =======
-# globals
-# =======
 
 # =========
 # functions
@@ -27,7 +24,6 @@ def init(file_name):
 
   
 def write(generation, data):
-  # write csv data
   out_writer.writerow([generation, data[0], data[1], data[2]])
 
   
