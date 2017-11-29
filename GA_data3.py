@@ -17,6 +17,7 @@ import sys
 import time
 import random
 import GA_csv
+import GA_data1
 
 
 # =======
@@ -26,17 +27,17 @@ import GA_csv
 OUT_DATA = True
 CSV_NAME = None
 # data set variables
-data_file = "data_sets/data1.txt"
-data_R_count = 32     # number of rows within data
+data_file = "data_sets/data3.txt"
+data_R_count = 2000   # number of rows within data
 data_c_size = 5       # size of variables within data
 # genetic algorithm variables
 c_size = data_c_size  # size of Rule's condition
-R_count = 32          # number of rules per individual
+R_count = 300          # number of rules per individual
 generation_limit = 50
-P_size = 400                    # size of population (of Solutions)
-G_size = (c_size + 1) * R_count # size of Solution's genome (+ 1 for output)
-C_rate = 0.9                    # crossover rate (0.0 to 1.0)  # NOTE: "typically 0.6 to 0.9"
-M_rate = 1 / P_size             # mutation rate (0.0 to 1.0)   # NOTE: 1 / P_size or 1 / G_size
+P_size = 20                         # size of population (of Solutions)
+G_size = (c_size*2 + 1) * R_count   # size of Solution's genome (+ 1 for output)
+C_rate = 0.9                        # crossover rate (0.0 to 1.0)  # NOTE: "typically 0.6 to 0.9"
+M_rate = 0.07#1 / P_size                 # mutation rate (0.0 to 1.0)   # NOTE: 1 / P_size or 1 / G_size
 
 
 # =======
@@ -54,7 +55,7 @@ class Rule:
         matching = 0
 
         for i, c in enumerate(self.condition):
-            if c == int(target[i]):
+            if c[0] <= float(target[i]) <= c[1]:
                 matching += 1
 
         return matching == data_c_size
@@ -77,10 +78,13 @@ class Solution():
             rule = Rule()
 
             for c in range(c_size):
-                rule.condition.append(self.genome[g])
-                g += 1
+                if self.genome[g] < self.genome[g+1]:
+                    rule.condition.append([self.genome[g], self.genome[g+1]])
+                else:
+                    rule.condition.append([self.genome[g+1], self.genome[g]])
+                g += 2
 
-            rule.output = self.genome[g]
+            rule.output = round(self.genome[g])
             g += 1
 
             self.rules.append(rule)
@@ -96,7 +100,7 @@ def fitness(individual):
     data = open(data_file)
     # loop through each rule in data_file
     for r in range(data_R_count):
-        data_rule = data.readline()
+        data_rule = data.readline().rstrip('\n').split(" ")
         # loop through & compare each rule in individual.rules
         for rule in individual.rules:
             if rule.condition_matches(data_rule[:data_c_size]):
@@ -118,7 +122,7 @@ def eval(population):
 
 
 def termination_criteria(generation, population):
-        # check termination criteria
+    # check termination criteria
     eval(population)
     if generation == generation_limit:
         terminate = True
@@ -146,14 +150,14 @@ def write_data(generation, population, out_data, csv_name):
     # debug print population fitness data
     if out_data is True:
         print("GENERATION " + str(generation))
-        # find fittest memeber of population
-        fittest = population[0]
-        for p in population:
-            if fittest.fitness < p.fitness:
-                fittest = p
-        # print fittest member's rules
-        for r in range(R_count):
-            print(str(fittest.rules[r]))
+        # # find fittest memeber of population
+        # fittest = population[0]
+        # for p in population:
+            # if fittest.fitness < p.fitness:
+                # fittest = p
+        # # print fittest member's rules
+        # for r in range(R_count):
+            # print(str(fittest.rules[r]))
         # print population stats
         print("Fittest:\t" + str(fittest))
         print("Average:\t" + str(average))
@@ -183,7 +187,7 @@ def init(population_size, genome_size):
     population = []
 
     for p in range(population_size):
-        genome = [random.randint(0, 1) for g in range(genome_size)]
+        genome = [random.random() for g in range(genome_size)]
         population.append(Solution(genome))
 
     return population
@@ -263,7 +267,7 @@ def mutate(population, mutation_rate):
         # mutate
         for g in i.genome:
             if random.random() <= mutation_rate:
-                genome.append(int(not g))
+                genome.append(g + random.uniform(-0.9, 0.9))
             else:
                 genome.append(g)
         # append mutated genome

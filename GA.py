@@ -8,13 +8,13 @@
 # =======
 import os
 import GA_csv
-import GA_binary
+import GA_data2_wildcard as GA
 
 
 # =========
 # functions
 # =========
-SAMPLE_NAME = "GA_binary_tournament"
+SAMPLE_NAME = "results/GA_data2_wildcard_more_mr"
 SAMPLE_SIZE = 10
 
 
@@ -24,7 +24,7 @@ SAMPLE_SIZE = 10
 def main():
     # run algorithm & write results to csv
     for s in range(SAMPLE_SIZE):
-        GA_binary.main(SAMPLE_NAME + str(s))
+        GA.main(SAMPLE_NAME + str(s))
     # init averages samples csv file
     GA_csv.init(SAMPLE_NAME)
     # create averaged results csv from samples
@@ -53,11 +53,10 @@ def average_samples():
         fittest = int(fittest / SAMPLE_SIZE)
         average = int(average / SAMPLE_SIZE)
         unfittest = int(unfittest / SAMPLE_SIZE)
-        # write averaged data to csv
+        
         GA_csv.write(SAMPLE_NAME, [r, fittest, average, unfittest])
 
-
-
+        
 # ============
 # entry points
 # ============

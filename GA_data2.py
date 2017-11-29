@@ -26,14 +26,14 @@ import GA_csv
 OUT_DATA = True
 CSV_NAME = None
 # data set variables
-data_file = "data_sets/data1.txt"
-data_R_count = 32     # number of rows within data
-data_c_size = 5       # size of variables within data
+data_file = "data_sets/data2.txt"
+data_R_count = 64     # number of rows within data
+data_c_size = 6       # size of variables within data
 # genetic algorithm variables
 c_size = data_c_size  # size of Rule's condition
-R_count = 32          # number of rules per individual
+R_count = 64          # number of rules per individual
 generation_limit = 50
-P_size = 400                    # size of population (of Solutions)
+P_size = 50                    # size of population (of Solutions)
 G_size = (c_size + 1) * R_count # size of Solution's genome (+ 1 for output)
 C_rate = 0.9                    # crossover rate (0.0 to 1.0)  # NOTE: "typically 0.6 to 0.9"
 M_rate = 1 / P_size             # mutation rate (0.0 to 1.0)   # NOTE: 1 / P_size or 1 / G_size
@@ -146,14 +146,14 @@ def write_data(generation, population, out_data, csv_name):
     # debug print population fitness data
     if out_data is True:
         print("GENERATION " + str(generation))
-        # find fittest memeber of population
-        fittest = population[0]
-        for p in population:
-            if fittest.fitness < p.fitness:
-                fittest = p
-        # print fittest member's rules
-        for r in range(R_count):
-            print(str(fittest.rules[r]))
+        # # find fittest memeber of population
+        # fittest = population[0]
+        # for p in population:
+            # if fittest.fitness < p.fitness:
+                # fittest = p
+        # # print fittest member's rules
+        # for r in range(R_count):
+            # print(str(fittest.rules[r]))
         # print population stats
         print("Fittest:\t" + str(fittest))
         print("Average:\t" + str(average))

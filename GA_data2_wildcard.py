@@ -3,10 +3,10 @@
 #
 # author: Alexander Collins
 # note:
-#   This file is almost exactly the same as binary_GA,
-#   the reason i've re-added all the re-used functions
-#   is so the other data GA files don't get a mixed up
-#   Solution() class returned.
+#   elitism() had to be copied from GA_data2.py
+#   instead of just importing it because it
+#   returns a Solution() who's build_rules
+#   didn't account for wildcards before termination_criteria().
 #
 
 
@@ -17,6 +17,7 @@ import sys
 import time
 import random
 import GA_csv
+import GA_data2
 
 
 # =======
@@ -26,16 +27,16 @@ import GA_csv
 OUT_DATA = True
 CSV_NAME = None
 # data set variables
-data_file = "data_sets/data1.txt"
-data_R_count = 32     # number of rows within data
-data_c_size = 5       # size of variables within data
+data_file = "data_sets/data2.txt"
+data_R_count = 64     # number of rows within data
+data_c_size = 6       # size of variables within data
 # genetic algorithm variables
 c_size = data_c_size  # size of Rule's condition
-R_count = 32          # number of rules per individual
+R_count = 100           # number of rules per individual
 generation_limit = 50
-P_size = 400                    # size of population (of Solutions)
+P_size = 20                    # size of population (of Solutions)
 G_size = (c_size + 1) * R_count # size of Solution's genome (+ 1 for output)
-C_rate = 0.9                    # crossover rate (0.0 to 1.0)  # NOTE: "typically 0.6 to 0.9"
+C_rate = 0.8                    # crossover rate (0.0 to 1.0)  # NOTE: "typically 0.6 to 0.9"
 M_rate = 1 / P_size             # mutation rate (0.0 to 1.0)   # NOTE: 1 / P_size or 1 / G_size
 
 
@@ -54,7 +55,7 @@ class Rule:
         matching = 0
 
         for i, c in enumerate(self.condition):
-            if c == int(target[i]):
+            if c == int(target[i]) or c == 2:
                 matching += 1
 
         return matching == data_c_size
@@ -80,7 +81,10 @@ class Solution():
                 rule.condition.append(self.genome[g])
                 g += 1
 
-            rule.output = self.genome[g]
+            if self.genome[g] == 2:
+                rule.output = random.choice([0, 1])
+            else:
+                rule.output = self.genome[g]
             g += 1
 
             self.rules.append(rule)
@@ -118,7 +122,7 @@ def eval(population):
 
 
 def termination_criteria(generation, population):
-        # check termination criteria
+    # check termination criteria
     eval(population)
     if generation == generation_limit:
         terminate = True
@@ -127,42 +131,9 @@ def termination_criteria(generation, population):
 
     # write data
     if OUT_DATA is True or CSV_NAME is not None:
-        write_data(generation, population, OUT_DATA, CSV_NAME)
-
+        GA_data2.write_data(generation, population, OUT_DATA, CSV_NAME)
+        
     return terminate
-
-
-def write_data(generation, population, out_data, csv_name):
-    # get the fitness data set
-    data_set = []
-    for i in population:
-        data_set.append(i.fitness)
-
-    # calculate population fitness data
-    fittest = max(data_set)
-    unfittest = min(data_set)
-    average = int(sum(data_set) / len(population))
-    
-    # debug print population fitness data
-    if out_data is True:
-        print("GENERATION " + str(generation))
-        # find fittest memeber of population
-        fittest = population[0]
-        for p in population:
-            if fittest.fitness < p.fitness:
-                fittest = p
-        # print fittest member's rules
-        for r in range(R_count):
-            print(str(fittest.rules[r]))
-        # print population stats
-        print("Fittest:\t" + str(fittest))
-        print("Average:\t" + str(average))
-        print("Unfittest:\t" + str(unfittest))
-        print("-------------------------")
-
-    # write population fitness data to csv
-    if csv_name is not None:
-        GA_csv.write(csv_name, [generation, fittest, average, unfittest])
 
 
 def run(generation_limit, P_size, G_size, C_rate, M_rate):
@@ -172,8 +143,8 @@ def run(generation_limit, P_size, G_size, C_rate, M_rate):
     population = init(P_size, G_size)
     # main loop
     while termination_criteria(generation, population) is False:
-        parents = tournament_selection(population, 2)
-        offspring = single_crossover(parents, C_rate, G_size)
+        parents = GA_data2.tournament_selection(population, 2)
+        offspring = GA_data2.single_crossover(parents, C_rate, G_size)
         offspring = mutate(offspring, M_rate)
         population = elitism(population, offspring)
         generation += 1
@@ -183,76 +154,10 @@ def init(population_size, genome_size):
     population = []
 
     for p in range(population_size):
-        genome = [random.randint(0, 1) for g in range(genome_size)]
+        genome = [random.randint(0, 2) for g in range(genome_size)]
         population.append(Solution(genome))
 
     return population
-
-
-def tournament_selection(population, p_count):
-    parents = []
-
-    for i in population:
-        # select candidates
-        candidates = [random.choice(population) for p in range(p_count)]
-        # tournament
-        fittest = candidates[0]
-        for c in candidates:
-            if c.fitness > fittest.fitness:
-                fittest = c
-        # add fittest candidate as parent
-        parents.append(fittest)
-
-    return parents
-
-
-def roulette_selection(population):
-    parents = []
-
-    # roulette
-    for i in population:
-        # get total population fitness
-        overall = 0
-        for i in population:
-            overall += i.fitness
-        # wheel selection
-        selection = random.randint(0, overall)
-        # spin wheel
-        f_count = 0
-        for i in population:
-            if f_count < selection:
-                f_count += i.fitness
-            if f_count >= selection:
-                parent = i
-                break
-        # add selected parent to parents
-        parents.append(parent)
-
-    return parents
-
-
-def single_crossover(population, crossover_rate, genome_size):
-    offspring = []
-
-    for i in population:
-        # pick two random population
-        parent1 = random.choice(population)
-        parent2 = random.choice(population)
-        # crossover
-        if random.random() <= crossover_rate:
-            split = random.randint(0, genome_size)
-            child1 = parent1.genome[0:split] + \
-                parent2.genome[split:genome_size]
-            child2 = parent2.genome[0:split] + \
-                parent1.genome[split:genome_size]
-        else:
-            child1 = parent1.genome
-            child2 = parent2.genome
-        # append child1, child2 to offspring
-        offspring.append(Solution(child1))
-        offspring.append(Solution(child2))
-
-    return offspring
 
 
 def mutate(population, mutation_rate):
@@ -263,7 +168,12 @@ def mutate(population, mutation_rate):
         # mutate
         for g in i.genome:
             if random.random() <= mutation_rate:
-                genome.append(int(not g))
+                if g == 2:
+                    genome.append(random.choice([0, 1]))
+                elif g == 1:
+                    genome.append(random.choice([1, 2]))
+                elif g == 0:
+                    genome.append(random.choice([0, 1]))
             else:
                 genome.append(g)
         # append mutated genome

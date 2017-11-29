@@ -17,7 +17,7 @@ import GA_csv
 # globals
 # =======
 # output options
-OUT_DATA = False
+OUT_DATA = True
 CSV_NAME = None
 # genetic algorithm variables
 generation_limit = 50
@@ -98,7 +98,7 @@ def write_data(generation, population):
 
     # write population fitness data to csv
     if CSV_NAME is not None:
-        GA_csv.write(CSV_NAME, [generation,fittest,unfittest,average])
+        GA_csv.write(CSV_NAME, [generation, fittest, average, unfittest])
 
 
 def run(generation_limit, P_size, G_size, C_rate, M_rate):
@@ -177,10 +177,8 @@ def single_crossover(population, crossover_rate, genome_size):
         # crossover
         if random.random() <= crossover_rate:
             split = random.randint(0, genome_size)
-            child1 = parent1.genome[0:split] + \
-                parent2.genome[split:genome_size]
-            child2 = parent2.genome[0:split] + \
-                parent1.genome[split:genome_size]
+            child1 = parent1.genome[0:split] + parent2.genome[split:genome_size]
+            child2 = parent2.genome[0:split] + parent1.genome[split:genome_size]
         else:
             child1 = parent1.genome
             child2 = parent2.genome
